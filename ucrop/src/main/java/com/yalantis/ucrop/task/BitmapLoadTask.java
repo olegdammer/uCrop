@@ -89,12 +89,23 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
 
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        options.inSampleSize = BitmapLoadUtils.calculateInSampleSize(options, mRequiredWidth, mRequiredHeight);
+        try {
+            InputStream is = mContext.getContentResolver().openInputStream(mInputUri);
+            try {
+                BitmapFactory.decodeStream(is, null, options);
+            } finally {
+                BitmapLoadUtils.close(is);
+            }
+            options.inSampleSize = BitmapLoadUtils.calculateInSampleSize(options, mRequiredWidth, mRequiredHeight);
+        } catch (IOException e) {
+            return new BitmapWorkerResult(new IllegalArgumentException("Bitmap could not be decoded from the Uri: [" + mInputUri + "]", e));
+        }
         options.inJustDecodeBounds = false;
 
         Bitmap decodeSampledBitmap = null;
 
         boolean decodeAttemptSuccess = false;
+        final int MAX_BITMAP_SIZE = 100 * 1024 * 1024; // 100 MB
         while (!decodeAttemptSuccess) {
             try {
                 InputStream stream = mContext.getContentResolver().openInputStream(mInputUri);
@@ -105,6 +116,11 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
                     }
                 } finally {
                     BitmapLoadUtils.close(stream);
+                }
+                int bitmapSize = decodeSampledBitmap != null ? decodeSampledBitmap.getByteCount() : 0;
+                if (bitmapSize > MAX_BITMAP_SIZE) { // AVOID CRASH 'Canvas: trying to draw too large bitmap.'
+                    options.inSampleSize *= 2;
+                    continue;
                 }
                 decodeAttemptSuccess = true;
             } catch (OutOfMemoryError error) {
