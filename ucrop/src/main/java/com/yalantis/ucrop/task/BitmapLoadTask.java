@@ -83,7 +83,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
 
         try {
             processInputUri();
-        } catch (NullPointerException | IOException e) {
+        } catch (NullPointerException | IOException | IllegalArgumentException | SecurityException e) {
             return new BitmapWorkerResult(e);
         }
 
@@ -156,7 +156,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
         return new BitmapWorkerResult(decodeSampledBitmap, exifInfo);
     }
 
-    private void processInputUri() throws NullPointerException, IOException {
+    private void processInputUri() throws NullPointerException, IOException, IllegalArgumentException, SecurityException {
         String inputUriScheme = mInputUri.getScheme();
         Log.d(TAG, "Uri scheme: " + inputUriScheme);
         if ("http".equals(inputUriScheme) || "https".equals(inputUriScheme)) {
