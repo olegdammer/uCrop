@@ -169,7 +169,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
         } else if ("content".equals(inputUriScheme)) {
             try {
                 copyFile(mInputUri, mOutputUri);
-            } catch (NullPointerException | IOException e) {
+            } catch (NullPointerException | IOException | SecurityException e) {
                 Log.e(TAG, "Copying failed", e);
                 throw e;
             }
@@ -179,7 +179,7 @@ public class BitmapLoadTask extends AsyncTask<Void, Void, BitmapLoadTask.BitmapW
         }
     }
 
-    private void copyFile(@NonNull Uri inputUri, @Nullable Uri outputUri) throws NullPointerException, IOException {
+    private void copyFile(@NonNull Uri inputUri, @Nullable Uri outputUri) throws NullPointerException, IOException, SecurityException {
         Log.d(TAG, "copyFile");
 
         if (outputUri == null) {
